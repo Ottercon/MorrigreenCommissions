@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morrigreen Commissions</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+
+<!-- Background Scene -->
+<div class="bg-scene">
+  <div class="dew-orb orb-1"></div>
+  <div class="dew-orb orb-2"></div>
+  <div class="dew-orb orb-3"></div>
+  <div class="dew-orb orb-4"></div>
+  <div class="dew-orb orb-5"></div>
+
+  <svg class="plant-corner" style="bottom:-10px;left:-10px;width:280px;height:280px;" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40 280 Q50 230 30 190 Q20 170 35 145" stroke="#5a8045" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M60 280 Q75 240 60 200 Q48 175 65 150 Q72 135 58 115" stroke="#4a7038" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M25 280 Q18 250 28 220 Q35 200 22 180" stroke="#6a9050" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <ellipse cx="30" cy="189" rx="28" ry="13" transform="rotate(-35 30 189)" fill="rgba(100,170,70,0.5)"/>
+    <ellipse cx="35" cy="143" rx="32" ry="14" transform="rotate(25 35 143)" fill="rgba(120,185,85,0.45)"/>
+    <ellipse cx="65" cy="148" rx="30" ry="13" transform="rotate(-20 65 148)" fill="rgba(95,165,68,0.48)"/>
+    <ellipse cx="58" cy="113" rx="26" ry="12" transform="rotate(40 58 113)" fill="rgba(130,195,95,0.4)"/>
+    <ellipse cx="22" cy="179" rx="24" ry="11" transform="rotate(-50 22 179)" fill="rgba(110,178,78,0.42)"/>
+    <circle cx="25" cy="185" r="4" fill="rgba(200,240,215,0.75)"/>
+    <circle cx="26" cy="184" r="1.5" fill="rgba(255,255,255,0.9)"/>
+    <circle cx="62" cy="145" r="3.5" fill="rgba(200,240,215,0.7)"/>
+    <circle cx="63" cy="144" r="1.2" fill="rgba(255,255,255,0.9)"/>
+  </svg>
+
+  <svg class="plant-corner" style="top:60px;right:-5px;width:200px;height:300px;" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">
+    <path d="M180 300 Q165 250 178 210 Q188 180 170 155 Q160 135 172 105" stroke="#5a8045" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M200 280 Q192 240 205 195 Q212 165 198 138" stroke="#4a7038" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <ellipse cx="172" cy="155" rx="30" ry="13" transform="rotate(30 172 155)" fill="rgba(100,170,70,0.45)"/>
+    <ellipse cx="170" cy="108" rx="28" ry="12" transform="rotate(-25 170 108)" fill="rgba(120,185,85,0.42)"/>
+    <ellipse cx="200" cy="138" rx="26" ry="11" transform="rotate(20 200 138)" fill="rgba(95,165,68,0.4)"/>
+    <circle cx="168" cy="153" r="4" fill="rgba(200,240,215,0.75)"/>
+    <circle cx="169" cy="152" r="1.5" fill="rgba(255,255,255,0.9)"/>
+  </svg>
+
+  <svg class="plant-corner" style="top:0;left:30%;width:120px;height:120px;opacity:0.4;" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <path d="M60 120 Q58 90 62 70 Q65 55 55 40" stroke="#6a9050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="55" cy="40" rx="22" ry="10" transform="rotate(-15 55 40)" fill="rgba(120,185,85,0.35)"/>
+    <ellipse cx="67" cy="65" rx="20" ry="9" transform="rotate(25 67 65)" fill="rgba(100,170,70,0.32)"/>
+    <circle cx="52" cy="38" r="3" fill="rgba(200,240,215,0.7)"/>
+    <circle cx="53" cy="37" r="1" fill="rgba(255,255,255,0.9)"/>
+  </svg>
+</div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo">
+    <span class="logo-leaf">🌿</span>
+    Morrigreen
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#commissions">Commissions</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#terms">Terms</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#order" class="nav-cta">Order ✦</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-ring"></div>
+  <div class="hero-ring hero-ring-2"></div>
+
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Commissions Open
+  </div>
+
+  <h1>Morrigan's Digital Art Commissions<br><em>care & dew</em></h1>
+
+  <p class="hero-sub">
+    Characters, portraits, and dreamy scenes, crafted just for you.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#commissions" class="btn-primary btn-green">Browse Commissions 🌱</a>
+    <a href="#about" class="btn-primary btn-ghost">Learn More</a>
+  </div>
+
+  <div class="hero-status">
+    <div class="status-chip chip-open"><span class="chip-dot"></span>Sketch — Open</div>
+    <div class="status-chip chip-open"><span class="chip-dot"></span>Color — Open</div>
+    <div class="status-chip chip-open"><span class="chip-dot"></span>Fullbody — Open</div>
+    <div class="status-chip chip-open"><span class="chip-dot"></span>VTuber Ref — Open</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-portrait">
+        <div class="portrait-frame">🌸</div>
+        <div class="portrait-deco-1"></div>
+        <div class="portrait-deco-2"></div>
+      </div>
+      <div class="about-text reveal">
+        <div class="section-label">About the Artist</div>
+        <h2 class="section-title">Hello! I'm Ghost / Morrigan 🍃</h2>
+        <p class="section-desc" style="max-width:100%;margin-bottom:16px;">
+          I'm a freelance digital illustrator. I specialise in character art — whether it's your OC, your D&D party, or a portrait, I want every piece to feel alive.
+        </p>
+        <p style="font-size:0.92rem;color:var(--text-soft);line-height:1.75;margin-bottom:20px;">
+          I've been illustrating for 6+ years with experience in creative media like game and character concept art.
+        </p>
+        <div class="about-tags">
+          <span class="tag">✦ OC & fan art</span>
+          <span class="tag">✦ Portraits</span>
+          <span class="tag">✦ Illustrated scenes</span>
+          <span class="tag">✦ VTuber design</span>
+          <span class="tag">✦ D&D characters</span>
+        </div>
+        <div class="about-socials">
+          <a href="https://twitter.com/GoMorrigan" target="_blank" class="social-btn" title="Twitter/X">𝕏</a>
+          <a href="https://www.tumblr.com/ghostmorrigan" target="_blank" class="social-btn" title="Tumblr">◈</a>
+          <a href="https://ko-fi.com/MawoKawo" target="_blank" class="social-btn" title="Ko-fi">☕</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COMMISSIONS -->
+<section id="commissions">
+  <div class="container">
+    <div class="commissions-header reveal">
+      <div>
+        <div class="section-label">Available Work</div>
+        <h2 class="section-title">Commission Types</h2>
+      </div>
+      <div class="slots-indicator">
+        <span style="color:var(--text-mid);">Slots filled</span>
+        <div class="slots-bar"><div class="slots-fill"></div></div>
+        <span>0 / 7</span>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+
+      <div class="commission-card glass card-sketch reveal">
+        <span class="card-tag tag-open">Open</span>
+        <div class="card-icon icon-sketch">✏️</div>
+        <div class="card-title">Sketch</div>
+        <div class="card-desc">Clean linework with soft pencil textures. Perfect for single characters in a gentle pose.</div>
+        <div class="card-price">£10 <span>/ character</span></div>
+        <div class="card-turnaround">⏱ Turnaround: 3–5 days</div>
+        <ul class="card-includes">
+          <li>Up to 3 characters, bust or fullbody</li>
+          <li>1 round of revisions</li>
+          <li>High-res PNG + sketch layer</li>
+          <li>Personal use license</li>
+        </ul>
+        <button class="card-btn" onclick="fillForm('Sketch')">Request Slot ✦</button>
+      </div>
+
+      <div class="commission-card glass card-color reveal">
+        <span class="card-tag tag-open">Open</span>
+        <div class="card-icon icon-color">🎨</div>
+        <div class="card-title">Colour Illustration</div>
+        <div class="card-desc">Soft cel-shading or painterly colour, with a simple background included.</div>
+        <div class="card-price">£25 <span>/ character</span></div>
+        <div class="card-turnaround">⏱ Turnaround: 7–10 days</div>
+        <ul class="card-includes">
+          <li>Up to 3 characters, any composition</li>
+          <li>Flat or gradient background</li>
+          <li>2 rounds of revisions</li>
+          <li>High-res PNG + layers</li>
+        </ul>
+        <button class="card-btn" onclick="fillForm('Color Illustration')">Request Slot ✦</button>
+      </div>
+
+      <div class="commission-card glass card-full reveal">
+        <span class="card-tag tag-open">Open</span>
+        <div class="card-icon icon-full">🌟</div>
+        <div class="card-title">Full Illustration</div>
+        <div class="card-desc">Detailed painted scene with full background, atmospheric lighting, and up to 3 characters.</div>
+        <div class="card-price">£40 <span>/ piece</span></div>
+        <div class="card-turnaround">⏱ Turnaround: 14–20 days</div>
+        <ul class="card-includes">
+          <li>Up to 3 characters</li>
+          <li>Full painted background</li>
+          <li>3 rounds of revisions</li>
+          <li>Commercial license available</li>
+        </ul>
+        <button class="card-btn" onclick="fillForm('Full Illustration')">Request Slot ✦</button>
+      </div>
+
+      <div class="commission-card glass card-vtuber reveal">
+        <span class="card-tag tag-open">Open</span>
+        <div class="card-icon icon-vtuber">🌸</div>
+        <div class="card-title">VTuber Reference Sheet</div>
+        <div class="card-desc">Full character reference sheet with front/back views, expressions, and outfit details.</div>
+        <div class="card-price">£100 <span>/ sheet</span></div>
+        <div class="card-turnaround">⏱ Turnaround: 21–28 days</div>
+        <ul class="card-includes">
+          <li>Front + back full-body view</li>
+          <li>4 expression panels</li>
+          <li>Outfit/accessory details</li>
+          <li>Commercial license included</li>
+        </ul>
+        <button class="card-btn" onclick="fillForm('VTuber Reference Sheet')">Request Slot ✦</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROCESS -->
+<section id="process" class="process-bg">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:10px;">
+      <div class="section-label" style="justify-content:center;">How it works</div>
+      <h2 class="section-title" style="text-align:center;">The Commission Process</h2>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-num"><span class="step-emoji">📬</span></div>
+        <div class="step-title">1. Reach Out</div>
+        <div class="step-desc">Fill out the order form below with your character details, references, and vision.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num"><span class="step-emoji">💬</span></div>
+        <div class="step-title">2. We Chat</div>
+        <div class="step-desc">I'll reply within 48hrs to confirm the slot, discuss details, and answer any questions.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num"><span class="step-emoji">🧾</span></div>
+        <div class="step-title">3. Invoice</div>
+        <div class="step-desc">You'll receive an invoice via Ko-fi or PayPal. Work starts upon payment confirmation.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num"><span class="step-emoji">🎨</span></div>
+        <div class="step-title">4. Sketching</div>
+        <div class="step-desc">I'll share WIP sketches for your approval before moving into colour and details.</div>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num"><span class="step-emoji">✨</span></div>
+        <div class="step-title">5. Delivery</div>
+        <div class="step-desc">Final files delivered via Google Drive (or your preferred method) in high resolution. Enjoy your art!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TERMS -->
+<section id="terms">
+  <div class="container">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-label" style="justify-content:center;">Ground Rules</div>
+      <h2 class="section-title" style="text-align:center;">Terms of Service</h2>
+      <p class="section-desc" style="text-align:center;margin:0 auto 0;">Please read before commissioning. By placing an order you agree to these terms.</p>
+    </div>
+    <div class="terms-grid">
+      <div class="term-card glass-deep reveal">
+        <span class="term-icon">💳</span>
+        <div class="term-title">Payment</div>
+        <div class="term-text">Full payment is required upfront before work begins. I accept PayPal (G&S) and Ko-fi. Prices are in GBP.</div>
+      </div>
+      <div class="term-card glass-deep reveal">
+        <span class="term-icon">🔄</span>
+        <div class="term-title">Revisions</div>
+        <div class="term-text">Revisions are included as listed per tier. Major changes after approval of a stage may incur additional fees.</div>
+      </div>
+      <div class="term-card glass-deep reveal">
+        <span class="term-icon">❌</span>
+        <div class="term-title">Refunds</div>
+        <div class="term-text">Refunds available before sketching begins (minus 10% processing). No refunds after work has started.</div>
+      </div>
+      <div class="term-card glass-deep reveal">
+        <span class="term-icon">📜</span>
+        <div class="term-title">Usage Rights</div>
+        <div class="term-text">Personal use license by default. Do not claim my art as your own. Commercial licenses available for an additional fee.</div>
+      </div>
+      <div class="term-card glass-deep reveal">
+        <span class="term-icon">🚫</span>
+        <div class="term-title">I Won't Draw</div>
+        <div class="term-text">Heavy gore, hateful content, real people without consent, or anything I'm uncomfortable with.</div>
+      </div>
+      <div class="term-card glass-deep reveal">
+        <span class="term-icon">🌿</span>
+        <div class="term-title">Portfolio Use</div>
+        <div class="term-text">I reserve the right to post completed work to my portfolio and socials unless you request privacy in advance.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-label" style="justify-content:center;">Questions</div>
+      <h2 class="section-title" style="text-align:center;">FAQ</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">How long will my commission take?<span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Turnaround times are listed per type and are estimates. Actual delivery may vary based on complexity, revision rounds, and current queue length. I'll always communicate if timelines shift.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">Can I see the WIP before it's finished?<span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes! I always share a sketch stage for approval before moving to colour, and a colour rough before final polish. You're never left in the dark.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">What if I don't have a reference sheet?<span class="faq-arrow">▾</span></div>
+        <div class="faq-a">That's totally okay! Written descriptions, mood boards, colour palettes, and inspiration images are all useful. The more detail you provide, the better I can capture your vision.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">Do you draw fan art / copyrighted characters?<span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes, I'm happy to draw fan art for personal use. Fan art is only available under a personal use license — commercial use of fan art is not something I can offer.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">Can I add on extra characters?<span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Yes! Additional characters are typically +25% of the base price each. Complex designs may vary. Ask me in the form or via DM and I'll give you an accurate quote.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">Do you offer rush orders?<span class="faq-arrow">▾</span></div>
+        <div class="faq-a">Rush commissions (faster than standard turnaround) are available for a 30% fee, subject to my current availability. Please mention this in your order form.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ORDER FORM -->
+<section id="order">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <div class="section-label">Get in touch</div>
+        <h2 class="section-title">Place an Order</h2>
+        <p>Fill out this form to request a commission slot. I'll get back to you within 48 hours to confirm availability and discuss your piece.</p>
+        <div class="contact-detail"><span class="icon">📧</span>MorrigreenArt@gmail.com</div>
+        <div class="contact-detail"><span class="icon">🐦</span>@GoMorrigan</div>
+        <div class="contact-detail"><span class="icon">☕</span>ko-fi.com/MawoKawo</div>
+        <div class="contact-detail" style="margin-top:18px;background:rgba(140,200,110,0.12);border-color:rgba(140,200,110,0.35);">
+          <span class="icon">⏰</span>
+          <div>
+            <div style="font-weight:600;color:var(--green-deep);margin-bottom:2px;">Response Time</div>
+            <div style="font-size:0.82rem;color:var(--text-soft);">Usually within 24–48 hours on weekdays.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-form glass-deep reveal">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name *</label>
+            <input type="text" placeholder="e.g. Maple Birch" id="nameField" name="name">
+          </div>
+          <div class="form-group">
+            <label>Contact / Handle *</label>
+            <input type="text" placeholder="Email or @handle" id="contactField" name="contact">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Commission Type *</label>
+          <select id="typeField" name="commission_type">
+            <option value="" disabled selected>Select a commission type…</option>
+            <option>Sketch (£10)</option>
+            <option>Colour Illustration (£25)</option>
+            <option>Full Illustration (£40)</option>
+            <option>VTuber Reference Sheet (£100)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Number of Characters</label>
+            <select name="characters">
+              <option>1 character</option>
+              <option>2 characters (+25%)</option>
+              <option>3+ characters (ask for quote)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Deadline / Rush?</label>
+            <select name="deadline">
+              <option>Standard turnaround</option>
+              <option>Rush (+30%)</option>
+              <option>Flexible — no rush</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Character Description *</label>
+          <textarea name="character_description" placeholder="Describe your character — appearance, personality, outfit, colours. Attach refs via link below!"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Reference Links</label>
+          <input type="text" name="reference_links" placeholder="Google Drive, Imgur, etc.">
+        </div>
+        <div class="form-group">
+          <label>Additional Notes</label>
+          <textarea name="additional_notes" placeholder="Mood, pose ideas, colour palette, anything else you'd like me to know…" style="min-height:80px;"></textarea>
+        </div>
+        <button class="form-submit" id="submitBtn" onclick="handleSubmit()">
+          Send Commission Request 🌿
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🌿 Morrigreen</div>
+  <p>© 2025 MorrigreenArt · All artwork is original and protected by copyright.</p>
+  <p style="margin-top:6px;">Made with my dew ✦</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
