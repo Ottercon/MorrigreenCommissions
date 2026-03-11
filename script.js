@@ -241,3 +241,41 @@ document.addEventListener('mousemove', e => {
     orb.style.transform += ` translate(${x * d}px, ${y * d}px)`;
   });
 });
+
+/* --- Gallery Lightbox --- */
+const galleryImages = [
+  'gallery1.jpg','gallery2.jpg','gallery3.jpg',
+  'gallery4.jpg','gallery5.jpg','gallery6.jpg',
+  'gallery7.jpg','gallery8.jpg','gallery9.jpg',
+];
+let currentLightboxIndex = 0;
+
+function openLightbox(src) {
+  currentLightboxIndex = galleryImages.indexOf(src);
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function shiftLightbox(dir) {
+  currentLightboxIndex = (currentLightboxIndex + dir + galleryImages.length) % galleryImages.length;
+  const img = document.getElementById('lightboxImg');
+  img.style.opacity = '0';
+  setTimeout(() => {
+    img.src = galleryImages[currentLightboxIndex];
+    img.style.opacity = '1';
+  }, 150);
+}
+
+// Close lightbox with Escape key, arrow keys to navigate
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('active')) return;
+  if (e.key === 'Escape')    closeLightbox();
+  if (e.key === 'ArrowLeft')  shiftLightbox(-1);
+  if (e.key === 'ArrowRight') shiftLightbox(1);
+});

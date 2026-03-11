@@ -62,6 +62,7 @@
     Morrigreen
   </a>
   <ul class="nav-links">
+    <li><a href="#gallery">Gallery</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#commissions">Commissions</a></li>
     <li><a href="#process">Process</a></li>
@@ -99,6 +100,65 @@
     <div class="status-chip chip-open"><span class="chip-dot"></span>VTuber Ref — Open</div>
   </div>
 </section>
+
+<div class="divider"></div>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:40px;">
+      <div class="section-label" style="justify-content:center;">Portfolio</div>
+      <h2 class="section-title" style="text-align:center;">Recent Work</h2>
+    </div>
+
+    <div class="masonry-grid">
+      <div class="masonry-item reveal" onclick="openLightbox('gallery1.jpg')">
+        <img src="gallery1.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery2.jpg')">
+        <img src="gallery2.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery3.jpg')">
+        <img src="gallery3.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery4.jpg')">
+        <img src="gallery4.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery5.jpg')">
+        <img src="gallery5.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery6.jpg')">
+        <img src="gallery6.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery7.jpg')">
+        <img src="gallery7.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery8.jpg')">
+        <img src="gallery8.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+      <div class="masonry-item reveal" onclick="openLightbox('gallery9.jpg')">
+        <img src="gallery9.jpg" alt="Commission artwork">
+        <div class="masonry-overlay"><span>View ✦</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-prev" onclick="event.stopPropagation(); shiftLightbox(-1)">❮</button>
+  <button class="lightbox-next" onclick="event.stopPropagation(); shiftLightbox(1)">❯</button>
+  <img id="lightboxImg" src="" alt="Gallery image">
+</div>
 
 <div class="divider"></div>
 
