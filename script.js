@@ -1,3 +1,64 @@
+/* --- Dynamic Currency Conversion --- */
+const BASE_PRICES = {
+  sketch: 10,
+  colour: 25,
+  full: 40,
+  vtuber: 100,
+};
+
+async function applyLocalCurrency() {
+  try {
+    const geoRes = await fetch('https://ipapi.co/json/');
+    const geo = await geoRes.json();
+    const currency = geo.currency || 'GBP';
+
+    const rateRes = await fetch('https://open.er-api.com/v6/latest/GBP');
+    const rateData = await rateRes.json();
+    const rate = rateData.rates[currency] || 1;
+
+    const formatter = new Intl.NumberFormat(geo.languages?.split(',')[0] || 'en', {
+      style: 'currency',
+      currency: currency,
+      maximumFractionDigits: 0,
+    });
+
+    const priceMap = {
+      sketch: formatter.format(Math.round(BASE_PRICES.sketch * rate)),
+      colour: formatter.format(Math.round(BASE_PRICES.colour * rate)),
+      full:   formatter.format(Math.round(BASE_PRICES.full   * rate)),
+      vtuber: formatter.format(Math.round(BASE_PRICES.vtuber * rate)),
+    };
+
+    document.querySelectorAll('.card-price').forEach((el, i) => {
+      const keys = ['sketch', 'colour', 'full', 'vtuber'];
+      const span = el.querySelector('span');
+      el.childNodes[0].textContent = priceMap[keys[i]] + ' ';
+      if (span) el.appendChild(span);
+    });
+
+    const select = document.getElementById('typeField');
+    if (select) {
+      select.options[1].text = `Sketch (${priceMap.sketch})`;
+      select.options[2].text = `Colour Illustration (${priceMap.colour})`;
+      select.options[3].text = `Full Illustration (${priceMap.full})`;
+      select.options[4].text = `VTuber Reference Sheet (${priceMap.vtuber})`;
+    }
+
+
+    if (currency !== 'GBP') {
+      const note = document.createElement('p');
+      note.style.cssText = 'font-size:0.75rem;color:var(--text-soft);text-align:center;margin-top:16px;opacity:0.8;';
+      note.textContent = `Prices shown in ${currency} — base prices are in GBP.`;
+      document.querySelector('.cards-grid').after(note);
+    }
+
+  } catch (e) {
+    console.log('Currency conversion unavailable, showing GBP.');
+  }
+}
+
+applyLocalCurrency();
+
 /* --- Cursor --- */
 const cursor = document.getElementById('cursor');
 const trail = document.getElementById('cursorTrail');
