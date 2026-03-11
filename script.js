@@ -1,34 +1,71 @@
-/* --- Dynamic Currency Conversion --- */
+/* --- PPP Currency Pricing --- */
 const BASE_PRICES = {
   sketch: 10,
   colour: 25,
-  full: 40,
+  full:   40,
   vtuber: 100,
+};
+
+// PPP multipliers by country code (relative to UK = 1.0)
+// Lower = more affordable region = lower price charged
+const PPP_MULTIPLIERS = {
+  // Full price regions (1.0)
+  GB: 1.0, US: 1.0, CA: 1.0, AU: 1.0, NZ: 1.0,
+  CH: 1.0, NO: 1.0, DK: 1.0, SE: 1.0, IS: 1.0,
+  SG: 1.0, JP: 0.95, KR: 0.9, HK: 1.0,
+  // Slight discount (0.8)
+  DE: 0.85, FR: 0.85, NL: 0.85, BE: 0.85, AT: 0.85,
+  FI: 0.85, IE: 0.9,  IT: 0.8,  ES: 0.8,  PT: 0.75,
+  // Medium discount (0.6–0.7)
+  PL: 0.65, CZ: 0.65, HU: 0.6,  SK: 0.6,  RO: 0.55,
+  HR: 0.6,  GR: 0.65, CY: 0.7,  MT: 0.75, SI: 0.7,
+  EE: 0.65, LV: 0.6,  LT: 0.6,  BG: 0.5,
+  // Larger discount (0.4–0.55)
+  MX: 0.5,  BR: 0.45, AR: 0.4,  CL: 0.5,  CO: 0.4,
+  PE: 0.4,  VE: 0.35, TR: 0.4,  ZA: 0.45, NG: 0.35,
+  EG: 0.35, MA: 0.4,  KE: 0.38, GH: 0.35, TZ: 0.32,
+  UA: 0.4,  RS: 0.45, BA: 0.4,  MK: 0.42, AL: 0.4,
+  // Significant discount (0.25–0.4)
+  PH: 0.35, TH: 0.4,  MY: 0.45, ID: 0.32, VN: 0.3,
+  IN: 0.28, PK: 0.25, BD: 0.25, LK: 0.3,  NP: 0.25,
+  MM: 0.28, KH: 0.28, LA: 0.28,
+  // Deepest discount (0.2–0.25)
+  ET: 0.22, UG: 0.22, MZ: 0.2,  MW: 0.2,  ZM: 0.25,
+  ZW: 0.22, SD: 0.22, YE: 0.2,  AF: 0.2,  SY: 0.2,
 };
 
 async function applyLocalCurrency() {
   try {
+    // 1. Detect country + currency
     const geoRes = await fetch('https://ipapi.co/json/');
     const geo = await geoRes.json();
     const currency = geo.currency || 'GBP';
+    const country  = geo.country  || 'GB';
 
-    const rateRes = await fetch('https://open.er-api.com/v6/latest/GBP');
+    // 2. Live GBP exchange rates
+    const rateRes  = await fetch('https://open.er-api.com/v6/latest/GBP');
     const rateData = await rateRes.json();
-    const rate = rateData.rates[currency] || 1;
+    const rate     = rateData.rates[currency] || 1;
 
+    // 3. PPP multiplier (default 1.0 for unknown countries)
+    const ppp = PPP_MULTIPLIERS[country] ?? 1.0;
+
+    // 4. Format currency
     const formatter = new Intl.NumberFormat(geo.languages?.split(',')[0] || 'en', {
       style: 'currency',
       currency: currency,
       maximumFractionDigits: 0,
     });
 
+    // 5. Calculate adjusted prices
     const priceMap = {
-      sketch: formatter.format(Math.round(BASE_PRICES.sketch * rate)),
-      colour: formatter.format(Math.round(BASE_PRICES.colour * rate)),
-      full:   formatter.format(Math.round(BASE_PRICES.full   * rate)),
-      vtuber: formatter.format(Math.round(BASE_PRICES.vtuber * rate)),
+      sketch: formatter.format(Math.round(BASE_PRICES.sketch * rate * ppp)),
+      colour: formatter.format(Math.round(BASE_PRICES.colour * rate * ppp)),
+      full:   formatter.format(Math.round(BASE_PRICES.full   * rate * ppp)),
+      vtuber: formatter.format(Math.round(BASE_PRICES.vtuber * rate * ppp)),
     };
 
+    // 6. Update price cards
     document.querySelectorAll('.card-price').forEach((el, i) => {
       const keys = ['sketch', 'colour', 'full', 'vtuber'];
       const span = el.querySelector('span');
@@ -36,6 +73,7 @@ async function applyLocalCurrency() {
       if (span) el.appendChild(span);
     });
 
+    // 7. Update form dropdown
     const select = document.getElementById('typeField');
     if (select) {
       select.options[1].text = `Sketch (${priceMap.sketch})`;
@@ -44,11 +82,14 @@ async function applyLocalCurrency() {
       select.options[4].text = `VTuber Reference Sheet (${priceMap.vtuber})`;
     }
 
-
+    // 8. Transparent note (remove this block if you want it quiet)
+    const isDiscounted = ppp < 1.0;
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:0.75rem;color:var(--text-soft);text-align:center;margin-top:16px;opacity:0.8;';
+    note.textContent = isDiscounted
+      ? `Prices are adjusted for your region (${currency}) to be more accessible. Base prices are in GBP.`
+      : `Prices shown in ${currency}. Base prices are in GBP.`;
     if (currency !== 'GBP') {
-      const note = document.createElement('p');
-      note.style.cssText = 'font-size:0.75rem;color:var(--text-soft);text-align:center;margin-top:16px;opacity:0.8;';
-      note.textContent = `Prices shown in ${currency} — base prices are in GBP.`;
       document.querySelector('.cards-grid').after(note);
     }
 
