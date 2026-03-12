@@ -6,112 +6,123 @@ const BASE_PRICES = {
   vtuber: 100,
 };
 
-// PPP multipliers by country code (relative to UK = 1.0)
-// Lower = more affordable region = lower price charged
 const PPP_MULTIPLIERS = {
-  // Full price regions (1.0)
   GB: 1.0, US: 1.0, CA: 1.0, AU: 1.0, NZ: 1.0,
   CH: 1.0, NO: 1.0, DK: 1.0, SE: 1.0, IS: 1.0,
   SG: 1.0, JP: 0.95, KR: 0.9, HK: 1.0,
-  // Slight discount (0.8)
   DE: 0.85, FR: 0.85, NL: 0.85, BE: 0.85, AT: 0.85,
   FI: 0.85, IE: 0.9,  IT: 0.8,  ES: 0.8,  PT: 0.75,
-  // Medium discount (0.6–0.7)
   PL: 0.65, CZ: 0.65, HU: 0.6,  SK: 0.6,  RO: 0.55,
   HR: 0.6,  GR: 0.65, CY: 0.7,  MT: 0.75, SI: 0.7,
   EE: 0.65, LV: 0.6,  LT: 0.6,  BG: 0.5,
-  // Larger discount (0.4–0.55)
   MX: 0.5,  BR: 0.45, AR: 0.4,  CL: 0.5,  CO: 0.4,
   PE: 0.4,  VE: 0.35, TR: 0.4,  ZA: 0.45, NG: 0.35,
   EG: 0.35, MA: 0.4,  KE: 0.38, GH: 0.35, TZ: 0.32,
   UA: 0.4,  RS: 0.45, BA: 0.4,  MK: 0.42, AL: 0.4,
-  // Significant discount (0.25–0.4)
   PH: 0.35, TH: 0.4,  MY: 0.45, ID: 0.32, VN: 0.3,
   IN: 0.28, PK: 0.25, BD: 0.25, LK: 0.3,  NP: 0.25,
   MM: 0.28, KH: 0.28, LA: 0.28,
-  // Deepest discount (0.2–0.25)
   ET: 0.22, UG: 0.22, MZ: 0.2,  MW: 0.2,  ZM: 0.25,
   ZW: 0.22, SD: 0.22, YE: 0.2,  AF: 0.2,  SY: 0.2,
 };
 
-// FIX: Store resolved priceMap globally so fillForm() can use it
-let resolvedPriceMap = null;
+// Attempt geo detection from multiple APIs in order.
+// ipwho.is is first — it's far less likely to be blocked by ad blockers than ipapi.co.
+async function detectGeo() {
+  const apis = [
+    async () => {
+      const r = await fetch('https://ipwho.is/');
+      const d = await r.json();
+      if (!d.success || !d.country_code) throw new Error('ipwho failed');
+      return { country: d.country_code, currency: d.currency?.code };
+    },
+    async () => {
+      const r = await fetch('https://ipapi.co/json/');
+      const d = await r.json();
+      if (!d.country) throw new Error('ipapi failed');
+      return { country: d.country, currency: d.currency };
+    },
+    async () => {
+      const r = await fetch('https://api.country.is/');
+      const d = await r.json();
+      if (!d.country) throw new Error('country.is failed');
+      // country.is only gives country code — derive currency from a basic map
+      const currencyByCountry = {
+        US:'USD',CA:'CAD',AU:'AUD',NZ:'NZD',JP:'JPY',KR:'KRW',
+        SG:'SGD',HK:'HKD',CH:'CHF',NO:'NOK',SE:'SEK',DK:'DKK',
+        IN:'INR',BR:'BRL',MX:'MXN',ZA:'ZAR',TR:'TRY',PL:'PLN',
+        CZ:'CZK',HU:'HUF',RO:'RON',UA:'UAH',NG:'NGN',KE:'KES',
+        EG:'EGP',PH:'PHP',TH:'THB',MY:'MYR',ID:'IDR',VN:'VND',
+        PK:'PKR',BD:'BDT',AR:'ARS',CL:'CLP',CO:'COP',
+      };
+      // EU members default to EUR
+      const euCountries = ['DE','FR','NL','BE','AT','FI','IE','IT','ES','PT',
+        'GR','CY','MT','SI','EE','LV','LT','SK','HR','BG'];
+      const currency = currencyByCountry[d.country]
+        ?? (euCountries.includes(d.country) ? 'EUR' : null);
+      return { country: d.country, currency };
+    },
+  ];
+
+  for (const attempt of apis) {
+    try {
+      const result = await attempt();
+      if (result.country) return result;
+    } catch { /* try next */ }
+  }
+  return null; // all failed — caller shows GBP
+}
 
 async function applyLocalCurrency() {
   try {
-    // 1. Detect country + currency — try ipapi.co, fall back to freeipapi.com
-    let geo;
-    try {
-      const geoRes = await fetch('https://ipapi.co/json/');
-      if (!geoRes.ok) throw new Error('ipapi failed');
-      geo = await geoRes.json();
-      if (!geo.country) throw new Error('no country');
-    } catch {
-      // Fallback geo API
-      const geoRes2 = await fetch('https://freeipapi.com/api/json');
-      const geo2 = await geoRes2.json();
-      geo = {
-        currency: geo2.currencyCode,
-        country:  geo2.countryCode,
-        languages: geo2.languages?.[0] || 'en',
-      };
-    }
+    const geo = await detectGeo();
+    if (!geo) return; // stay on GBP
 
-    const currency = geo.currency || 'GBP';
     const country  = geo.country  || 'GB';
+    const currency = geo.currency || 'GBP';
 
-    // 2. Live GBP exchange rates
+    // Live GBP exchange rates
     const rateRes  = await fetch('https://open.er-api.com/v6/latest/GBP');
     const rateData = await rateRes.json();
-    const rate     = rateData.rates[currency] || 1;
+    const rate     = rateData.rates[currency] ?? 1;
 
-    // 3. PPP multiplier (default 1.0 for unknown countries)
     const ppp = PPP_MULTIPLIERS[country] ?? 1.0;
 
-    // 4. Format currency
-    const formatter = new Intl.NumberFormat(
-      (typeof geo.languages === 'string' ? geo.languages.split(',')[0] : geo.languages) || 'en',
-      { style: 'currency', currency: currency, maximumFractionDigits: 0 }
-    );
+    const formatter = new Intl.NumberFormat(navigator.language || 'en', {
+      style: 'currency',
+      currency: currency,
+      maximumFractionDigits: 0,
+    });
 
-    // 5. Calculate adjusted prices
-    resolvedPriceMap = {
+    const priceMap = {
       sketch: formatter.format(Math.round(BASE_PRICES.sketch * rate * ppp)),
       colour: formatter.format(Math.round(BASE_PRICES.colour * rate * ppp)),
       full:   formatter.format(Math.round(BASE_PRICES.full   * rate * ppp)),
       vtuber: formatter.format(Math.round(BASE_PRICES.vtuber * rate * ppp)),
     };
 
-    // 6. FIX: Update price cards robustly — find a data-price attribute or text node safely
-    const keys = ['sketch', 'colour', 'full', 'vtuber'];
-    document.querySelectorAll('.card-price').forEach((el, i) => {
-      const key = keys[i];
-      if (!key) return;
+    // Store currency for form submission
+    document.getElementById('regionCurrency').value = currency;
+
+    // Update price cards — uses data-price-key for reliable targeting
+    document.querySelectorAll('.card-price[data-price-key]').forEach(el => {
+      const key = el.dataset.priceKey;
+      if (!priceMap[key]) return;
       const span = el.querySelector('span');
-      // Find the text node (skip whitespace-only nodes)
-      const textNode = [...el.childNodes].find(
-        n => n.nodeType === Node.TEXT_NODE && n.textContent.trim()
-      );
-      if (textNode) {
-        textNode.textContent = resolvedPriceMap[key] + ' ';
-      } else {
-        // Fallback: prepend new text node before any child elements
-        el.insertBefore(document.createTextNode(resolvedPriceMap[key] + ' '), el.firstChild);
-      }
-      // Keep the sub-label span in place
+      el.textContent = priceMap[key] + ' ';
       if (span) el.appendChild(span);
     });
 
-    // 7. Update form dropdown
+    // Update form dropdown — options now have value attrs so .text change is safe
     const select = document.getElementById('typeField');
     if (select) {
-      select.options[1].text = `Sketch (${resolvedPriceMap.sketch})`;
-      select.options[2].text = `Colour Illustration (${resolvedPriceMap.colour})`;
-      select.options[3].text = `Full Illustration (${resolvedPriceMap.full})`;
-      select.options[4].text = `VTuber Reference Sheet (${resolvedPriceMap.vtuber})`;
+      select.options[1].text = `Sketch (${priceMap.sketch})`;
+      select.options[2].text = `Colour Illustration (${priceMap.colour})`;
+      select.options[3].text = `Full Illustration (${priceMap.full})`;
+      select.options[4].text = `VTuber Reference Sheet (${priceMap.vtuber})`;
     }
 
-    // 8. Transparent note
+    // Region note
     const isDiscounted = ppp < 1.0;
     const note = document.createElement('p');
     note.style.cssText = 'font-size:0.75rem;color:var(--text-soft);text-align:center;margin-top:16px;opacity:0.8;';
@@ -193,35 +204,17 @@ function toggleFaq(el) {
 }
 
 /* --- Pre-fill form from cards --- */
-// FIX: Use resolvedPriceMap if available, otherwise fall back to GBP defaults
+// FIX: options now have value attrs (sketch/colour/full/vtuber) — just set .value directly
 function fillForm(type) {
-  const select = document.getElementById('typeField');
-  if (!select) return;
-
   const keyMap = {
-    'Sketch':                 { optionIndex: 1, fallback: 'Sketch (£10)' },
-    'Color Illustration':     { optionIndex: 2, fallback: 'Colour Illustration (£25)' },
-    'Full Illustration':      { optionIndex: 3, fallback: 'Full Illustration (£40)' },
-    'VTuber Reference Sheet': { optionIndex: 4, fallback: 'VTuber Reference Sheet (£100)' },
+    'Sketch':                 'sketch',
+    'Color Illustration':     'colour',
+    'Full Illustration':      'full',
+    'VTuber Reference Sheet': 'vtuber',
   };
-
-  const entry = keyMap[type];
-  if (!entry) return;
-
-  // If the dropdown has already been updated by applyLocalCurrency, use its current text
-  const option = select.options[entry.optionIndex];
-  select.value = option ? option.value || option.text : entry.fallback;
-
-  // If value didn't stick (select uses text as value), match by text
-  if (!select.value && option) {
-    for (let i = 0; i < select.options.length; i++) {
-      if (select.options[i].text === option.text) {
-        select.selectedIndex = i;
-        break;
-      }
-    }
-  }
-
+  const select = document.getElementById('typeField');
+  const key = keyMap[type];
+  if (select && key) select.value = key;
   document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -243,10 +236,17 @@ async function handleSubmit() {
   }
 
   const form = btn.closest('.order-form');
+
+  // Resolve the human-readable price label for the selected type
+  const selectedOption = form.querySelector('[name="commission_type"] option:checked');
+  document.getElementById('regionPrice').value = selectedOption ? selectedOption.text : type;
+
   const data = {
     "Name":                  form.querySelector('[name="name"]').value,
     "Contact / Handle":      form.querySelector('[name="contact"]').value,
-    "Commission Type":       form.querySelector('[name="commission_type"]').value,
+    "Commission Type":       selectedOption ? selectedOption.text : type,
+    "Currency":              form.querySelector('[name="region_currency"]').value,
+    "Quoted Price":          form.querySelector('[name="region_price"]').value,
     "Characters":            form.querySelector('[name="characters"]').value,
     "Deadline":              form.querySelector('[name="deadline"]').value,
     "Character Description": form.querySelector('[name="character_description"]').value,
@@ -322,7 +322,6 @@ function shiftLightbox(dir) {
   }, 150);
 }
 
-// Close lightbox with Escape key, arrow keys to navigate
 document.addEventListener('keydown', e => {
   if (!document.getElementById('lightbox').classList.contains('active')) return;
   if (e.key === 'Escape')     closeLightbox();
