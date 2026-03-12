@@ -207,10 +207,10 @@ async function applyLocalCurrency() {
 
     const formatter = new Intl.NumberFormat(
       geo.languages?.split(',')[0] || 'en',
-      { style: 'currency', currency, maximumFractionDigits: 0 }
+      { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
     );
 
-    const convert = (base) => formatter.format(Math.round(base * rate * ppp));
+    const convert = (base) => formatter.format(Math.round(base * rate * ppp * 2)/2);
 
     // Update every price cell
     document.querySelectorAll('.price-cell').forEach(el => {
