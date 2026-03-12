@@ -1,74 +1,236 @@
-/* =====================
-   CURSOR
-===================== */
-const cursor      = document.getElementById('cursor');
-const cursorTrail = document.getElementById('cursorTrail');
+/* --- PPP Currency Pricing --- */
+const BASE_PRICES = {
+  sketch: 10,
+  colour: 25,
+  full:   40,
+  vtuber: 100,
+};
+
+// PPP multipliers by country code (relative to UK = 1.0)
+// Lower = more affordable region = lower price charged
+const PPP_MULTIPLIERS = {
+  // Full price regions (1.0)
+  GB: 1.0, US: 1.0, CA: 1.0, AU: 1.0, NZ: 1.0,
+  CH: 1.0, NO: 1.0, DK: 1.0, SE: 1.0, IS: 1.0,
+  SG: 1.0, JP: 0.95, KR: 0.9, HK: 1.0,
+  // Slight discount (0.8)
+  DE: 0.85, FR: 0.85, NL: 0.85, BE: 0.85, AT: 0.85,
+  FI: 0.85, IE: 0.9,  IT: 0.8,  ES: 0.8,  PT: 0.75,
+  // Medium discount (0.6–0.7)
+  PL: 0.65, CZ: 0.65, HU: 0.6,  SK: 0.6,  RO: 0.55,
+  HR: 0.6,  GR: 0.65, CY: 0.7,  MT: 0.75, SI: 0.7,
+  EE: 0.65, LV: 0.6,  LT: 0.6,  BG: 0.5,
+  // Larger discount (0.4–0.55)
+  MX: 0.5,  BR: 0.45, AR: 0.4,  CL: 0.5,  CO: 0.4,
+  PE: 0.4,  VE: 0.35, TR: 0.4,  ZA: 0.45, NG: 0.35,
+  EG: 0.35, MA: 0.4,  KE: 0.38, GH: 0.35, TZ: 0.32,
+  UA: 0.4,  RS: 0.45, BA: 0.4,  MK: 0.42, AL: 0.4,
+  // Significant discount (0.25–0.4)
+  PH: 0.35, TH: 0.4,  MY: 0.45, ID: 0.32, VN: 0.3,
+  IN: 0.28, PK: 0.25, BD: 0.25, LK: 0.3,  NP: 0.25,
+  MM: 0.28, KH: 0.28, LA: 0.28,
+  // Deepest discount (0.2–0.25)
+  ET: 0.22, UG: 0.22, MZ: 0.2,  MW: 0.2,  ZM: 0.25,
+  ZW: 0.22, SD: 0.22, YE: 0.2,  AF: 0.2,  SY: 0.2,
+};
+
+// FIX: Store resolved priceMap globally so fillForm() can use it
+let resolvedPriceMap = null;
+
+async function applyLocalCurrency() {
+  try {
+    // 1. Detect country + currency — try ipapi.co, fall back to freeipapi.com
+    let geo;
+    try {
+      const geoRes = await fetch('https://ipapi.co/json/');
+      if (!geoRes.ok) throw new Error('ipapi failed');
+      geo = await geoRes.json();
+      if (!geo.country) throw new Error('no country');
+    } catch {
+      // Fallback geo API
+      const geoRes2 = await fetch('https://freeipapi.com/api/json');
+      const geo2 = await geoRes2.json();
+      geo = {
+        currency: geo2.currencyCode,
+        country:  geo2.countryCode,
+        languages: geo2.languages?.[0] || 'en',
+      };
+    }
+
+    const currency = geo.currency || 'GBP';
+    const country  = geo.country  || 'GB';
+
+    // 2. Live GBP exchange rates
+    const rateRes  = await fetch('https://open.er-api.com/v6/latest/GBP');
+    const rateData = await rateRes.json();
+    const rate     = rateData.rates[currency] || 1;
+
+    // 3. PPP multiplier (default 1.0 for unknown countries)
+    const ppp = PPP_MULTIPLIERS[country] ?? 1.0;
+
+    // 4. Format currency
+    const formatter = new Intl.NumberFormat(
+      (typeof geo.languages === 'string' ? geo.languages.split(',')[0] : geo.languages) || 'en',
+      { style: 'currency', currency: currency, maximumFractionDigits: 0 }
+    );
+
+    // 5. Calculate adjusted prices
+    resolvedPriceMap = {
+      sketch: formatter.format(Math.round(BASE_PRICES.sketch * rate * ppp)),
+      colour: formatter.format(Math.round(BASE_PRICES.colour * rate * ppp)),
+      full:   formatter.format(Math.round(BASE_PRICES.full   * rate * ppp)),
+      vtuber: formatter.format(Math.round(BASE_PRICES.vtuber * rate * ppp)),
+    };
+
+    // 6. FIX: Update price cards robustly — find a data-price attribute or text node safely
+    const keys = ['sketch', 'colour', 'full', 'vtuber'];
+    document.querySelectorAll('.card-price').forEach((el, i) => {
+      const key = keys[i];
+      if (!key) return;
+      const span = el.querySelector('span');
+      // Find the text node (skip whitespace-only nodes)
+      const textNode = [...el.childNodes].find(
+        n => n.nodeType === Node.TEXT_NODE && n.textContent.trim()
+      );
+      if (textNode) {
+        textNode.textContent = resolvedPriceMap[key] + ' ';
+      } else {
+        // Fallback: prepend new text node before any child elements
+        el.insertBefore(document.createTextNode(resolvedPriceMap[key] + ' '), el.firstChild);
+      }
+      // Keep the sub-label span in place
+      if (span) el.appendChild(span);
+    });
+
+    // 7. Update form dropdown
+    const select = document.getElementById('typeField');
+    if (select) {
+      select.options[1].text = `Sketch (${resolvedPriceMap.sketch})`;
+      select.options[2].text = `Colour Illustration (${resolvedPriceMap.colour})`;
+      select.options[3].text = `Full Illustration (${resolvedPriceMap.full})`;
+      select.options[4].text = `VTuber Reference Sheet (${resolvedPriceMap.vtuber})`;
+    }
+
+    // 8. Transparent note
+    const isDiscounted = ppp < 1.0;
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:0.75rem;color:var(--text-soft);text-align:center;margin-top:16px;opacity:0.8;';
+    note.textContent = isDiscounted
+      ? `Prices are adjusted for your region (${currency}) to be more accessible. Base prices are in GBP.`
+      : `Prices shown in ${currency}. Base prices are in GBP.`;
+    if (currency !== 'GBP') {
+      document.querySelector('.cards-grid').after(note);
+    }
+
+  } catch (e) {
+    console.log('Currency conversion unavailable, showing GBP.');
+  }
+}
+
+applyLocalCurrency();
+
+/* --- Cursor --- */
+const cursor = document.getElementById('cursor');
+const trail = document.getElementById('cursorTrail');
 let mx = 0, my = 0, tx = 0, ty = 0;
 
 document.addEventListener('mousemove', e => {
   mx = e.clientX; my = e.clientY;
   cursor.style.left = mx + 'px';
-  cursor.style.top  = my + 'px';
+  cursor.style.top = my + 'px';
 });
 
-(function animateTrail() {
-  tx += (mx - tx) * 0.18;
-  ty += (my - ty) * 0.18;
-  cursorTrail.style.left = tx + 'px';
-  cursorTrail.style.top  = ty + 'px';
-  requestAnimationFrame(animateTrail);
-})();
+function animTrail() {
+  tx += (mx - tx) * 0.15;
+  ty += (my - ty) * 0.15;
+  trail.style.left = tx + 'px';
+  trail.style.top = ty + 'px';
+  requestAnimationFrame(animTrail);
+}
+animTrail();
 
-/* =====================
-   NAV SCROLL
-===================== */
+document.querySelectorAll('a, button, .faq-q, .commission-card').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width = '24px';
+    cursor.style.height = '24px';
+    trail.style.width = '55px';
+    trail.style.height = '55px';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width = '16px';
+    cursor.style.height = '16px';
+    trail.style.width = '40px';
+    trail.style.height = '40px';
+  });
+});
+
+/* --- Nav scroll --- */
+const nav = document.getElementById('mainNav');
 window.addEventListener('scroll', () => {
-  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 30);
+  nav.classList.toggle('scrolled', window.scrollY > 40);
 });
 
-/* =====================
-   SCROLL REVEAL
-===================== */
-const revealObserver = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
-}, { threshold: 0.08 });
+/* --- Scroll Reveal --- */
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      const siblings = [...e.target.parentElement.querySelectorAll('.reveal')];
+      const idx = siblings.indexOf(e.target);
+      setTimeout(() => e.target.classList.add('visible'), idx * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+revealEls.forEach(el => observer.observe(el));
 
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-/* =====================
-   FAQ
-===================== */
+/* --- FAQ --- */
 function toggleFaq(el) {
-  el.parentElement.classList.toggle('open');
+  const item = el.parentElement;
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
 }
 
-/* =====================
-   FORM FILL
-===================== */
+/* --- Pre-fill form from cards --- */
+// FIX: Use resolvedPriceMap if available, otherwise fall back to GBP defaults
 function fillForm(type) {
-  const map = {
-    'Sketch':                   'Sketch (£10)',
-    'Colour Illustration':      'Colour Illustration (£25)',
-    'Full Illustration':        'Full Illustration (£40)',
-    'VTuber Reference Sheet':   'VTuber Reference Sheet (£100)',
+  const select = document.getElementById('typeField');
+  if (!select) return;
+
+  const keyMap = {
+    'Sketch':                 { optionIndex: 1, fallback: 'Sketch (£10)' },
+    'Color Illustration':     { optionIndex: 2, fallback: 'Colour Illustration (£25)' },
+    'Full Illustration':      { optionIndex: 3, fallback: 'Full Illustration (£40)' },
+    'VTuber Reference Sheet': { optionIndex: 4, fallback: 'VTuber Reference Sheet (£100)' },
   };
-  const sel = document.getElementById('typeField');
-  if (sel) {
-    for (let i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].text === map[type]) { sel.selectedIndex = i; break; }
+
+  const entry = keyMap[type];
+  if (!entry) return;
+
+  // If the dropdown has already been updated by applyLocalCurrency, use its current text
+  const option = select.options[entry.optionIndex];
+  select.value = option ? option.value || option.text : entry.fallback;
+
+  // If value didn't stick (select uses text as value), match by text
+  if (!select.value && option) {
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].text === option.text) {
+        select.selectedIndex = i;
+        break;
+      }
     }
   }
+
   document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
 }
 
-/* =====================
-   FORM SUBMIT
-===================== */
+/* --- Form submit → Formspree --- */
 async function handleSubmit() {
-  const name    = document.getElementById('nameField').value.trim();
+  const name = document.getElementById('nameField').value.trim();
   const contact = document.getElementById('contactField').value.trim();
-  const type    = document.getElementById('typeField').value;
-  const btn     = document.getElementById('submitBtn');
+  const type = document.getElementById('typeField').value;
+  const btn = document.getElementById('submitBtn');
 
   if (!name || !contact || !type) {
     btn.textContent = '⚠ Please fill in Name, Contact, and Commission Type';
@@ -102,13 +264,16 @@ async function handleSubmit() {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(data)
     });
+
     if (res.ok) {
       btn.textContent = "✓ Request Sent! I'll be in touch soon 🌿";
       btn.style.background = 'linear-gradient(135deg, #6aad55, #4d8038)';
       btn.style.opacity = '1';
       form.querySelectorAll('input, textarea').forEach(el => el.value = '');
       form.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-    } else { throw new Error('bad response'); }
+    } else {
+      throw new Error('bad response');
+    }
   } catch {
     btn.textContent = '✗ Something went wrong — try emailing me directly';
     btn.style.background = 'linear-gradient(135deg, #c96060, #a04040)';
@@ -117,26 +282,27 @@ async function handleSubmit() {
   }
 }
 
-/* =====================
-   LIGHTBOX
-===================== */
-let lightboxImages = [];
-let lightboxIndex  = 0;
-
-function openLightbox(src, index) {
-  // Collect all images from the same tier gallery
-  const item = [...document.querySelectorAll('.tg-item')].find(el => {
-    return el.querySelector('img')?.src.includes(src.replace(/.*\//, ''));
+/* --- Parallax on orbs --- */
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 10;
+  const y = (e.clientY / window.innerHeight - 0.5) * 10;
+  document.querySelectorAll('.dew-orb').forEach((orb, i) => {
+    const d = (i + 1) * 0.4;
+    orb.style.transform += ` translate(${x * d}px, ${y * d}px)`;
   });
-  if (item) {
-    const tier = item.closest('.tier-gallery');
-    lightboxImages = [...tier.querySelectorAll('img')].map(img => img.src);
-    lightboxIndex  = index;
-  } else {
-    lightboxImages = [src];
-    lightboxIndex  = 0;
-  }
-  document.getElementById('lightboxImg').src = lightboxImages[lightboxIndex];
+});
+
+/* --- Gallery Lightbox --- */
+const galleryImages = [
+  'gallery1.jpg','gallery2.jpg','gallery3.jpg',
+  'gallery4.jpg','gallery5.jpg','gallery6.jpg',
+  'gallery7.jpg','gallery8.jpg','gallery9.jpg',
+];
+let currentLightboxIndex = 0;
+
+function openLightbox(src) {
+  currentLightboxIndex = galleryImages.indexOf(src);
+  document.getElementById('lightboxImg').src = src;
   document.getElementById('lightbox').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -147,111 +313,19 @@ function closeLightbox() {
 }
 
 function shiftLightbox(dir) {
-  lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+  currentLightboxIndex = (currentLightboxIndex + dir + galleryImages.length) % galleryImages.length;
   const img = document.getElementById('lightboxImg');
   img.style.opacity = '0';
   setTimeout(() => {
-    img.src = lightboxImages[lightboxIndex];
+    img.src = galleryImages[currentLightboxIndex];
     img.style.opacity = '1';
-  }, 140);
+  }, 150);
 }
 
+// Close lightbox with Escape key, arrow keys to navigate
 document.addEventListener('keydown', e => {
   if (!document.getElementById('lightbox').classList.contains('active')) return;
   if (e.key === 'Escape')     closeLightbox();
   if (e.key === 'ArrowLeft')  shiftLightbox(-1);
   if (e.key === 'ArrowRight') shiftLightbox(1);
 });
-
-/* =====================
-   PPP CURRENCY PRICING
-===================== */
-const BASE_PRICES = {
-  sketch:  10,
-  colour:  25,
-  full:    40,
-  vtuber: 100,
-};
-
-const PPP_MULTIPLIERS = {
-  GB: 1.0, US: 1.0, CA: 1.0, AU: 1.0, NZ: 1.0,
-  CH: 1.0, NO: 1.0, DK: 1.0, SE: 1.0, IS: 1.0,
-  SG: 1.0, JP: 0.95, KR: 0.9, HK: 1.0,
-  DE: 0.85, FR: 0.85, NL: 0.85, BE: 0.85, AT: 0.85,
-  FI: 0.85, IE: 0.9,  IT: 0.8,  ES: 0.8,  PT: 0.75,
-  PL: 0.65, CZ: 0.65, HU: 0.6,  SK: 0.6,  RO: 0.55,
-  HR: 0.6,  GR: 0.65, CY: 0.7,  MT: 0.75, SI: 0.7,
-  EE: 0.65, LV: 0.6,  LT: 0.6,  BG: 0.5,
-  MX: 0.5,  BR: 0.45, AR: 0.4,  CL: 0.5,  CO: 0.4,
-  PE: 0.4,  VE: 0.35, TR: 0.4,  ZA: 0.45, NG: 0.35,
-  EG: 0.35, MA: 0.4,  KE: 0.38, GH: 0.35, TZ: 0.32,
-  UA: 0.4,  RS: 0.45, BA: 0.4,  MK: 0.42, AL: 0.4,
-  PH: 0.35, TH: 0.4,  MY: 0.45, ID: 0.32, VN: 0.3,
-  IN: 0.28, PK: 0.25, BD: 0.25, LK: 0.3,  NP: 0.25,
-  MM: 0.28, KH: 0.28, LA: 0.28,
-  ET: 0.22, UG: 0.22, MZ: 0.2,  MW: 0.2,  ZM: 0.25,
-  ZW: 0.22, SD: 0.22, YE: 0.2,  AF: 0.2,  SY: 0.2,
-};
-
-async function applyLocalCurrency() {
-  try {
-    const geoRes  = await fetch('https://ip-api.com/json/?fields=countryCode,currency');
-    const geo     = await geoRes.json();
-    const currency = geo.currency || 'GBP';
-    const country  = geo.country  || 'GB';
-
-    const rateRes  = await fetch('https://open.er-api.com/v6/latest/GBP');
-    const rateData = await rateRes.json();
-    const rate     = rateData.rates[currency] || 1;
-    const ppp      = PPP_MULTIPLIERS[country] ?? 1.0;
-
-    const formatter = new Intl.NumberFormat(
-      geo.languages?.split(',')[0] || 'en',
-      { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
-    );
-
-    const convert = (base) => formatter.format(Math.round(base * rate * ppp * 2)/2);
-
-    // Update every price cell
-    document.querySelectorAll('.price-cell').forEach(el => {
-      const base = parseFloat(el.dataset.base);
-      if (!isNaN(base)) el.textContent = convert(base);
-    });
-
-    // Update form dropdown
-    const sel = document.getElementById('typeField');
-    if (sel) {
-      const labels = ['sketch','colour','full','vtuber'];
-      const bases  = [10, 25, 40, 100];
-      [1,2,3,4].forEach((i, idx) => {
-        const names = ['Sketch','Colour Illustration','Full Illustration','VTuber Reference Sheet'];
-        sel.options[i].text = `${names[idx]} (${convert(bases[idx])})`;
-      });
-    }
-
-    // Also sync fillForm map to new option text
-    window._fillFormMap = {
-      'Sketch':                 `Sketch (${convert(10)})`,
-      'Colour Illustration':    `Colour Illustration (${convert(25)})`,
-      'Full Illustration':      `Full Illustration (${convert(40)})`,
-      'VTuber Reference Sheet': `VTuber Reference Sheet (${convert(100)})`,
-    };
-
-    // Currency note
-    const note = document.getElementById('currency-note');
-    if (note && currency !== 'GBP') {
-      note.textContent = ppp < 1.0
-        ? `Prices adjusted for your region (${currency}) to be more accessible. Base prices are in GBP.`
-        : `Prices shown in ${currency}. Base prices are in GBP.`;
-    } else if (note) {
-      note.style.display = 'none';
-    }
-
-  } catch (e) {
-    console.log('Currency conversion unavailable, showing GBP.');
-    const note = document.getElementById('currency-note');
-    if (note) note.style.display = 'none';
-  }
-}
-
-applyLocalCurrency();
