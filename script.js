@@ -195,7 +195,7 @@ const PPP_MULTIPLIERS = {
 
 async function applyLocalCurrency() {
   try {
-    const geoRes  = await fetch('https://ipapi.co/json/');
+    const geoRes  = await fetch('https://ip-api.com/json/?fields=countryCode,currency');
     const geo     = await geoRes.json();
     const currency = geo.currency || 'GBP';
     const country  = geo.country  || 'GB';
